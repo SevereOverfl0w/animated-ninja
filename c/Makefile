@@ -1,2 +1,2 @@
 all:
-	gcc main.c -lcurl -ljson -o main
+	gcc main.c -o main -lcurl -ljson
