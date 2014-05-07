@@ -11,4 +11,6 @@ make
 ```
 ### Run ###
 #### Linux / Mac OS X ####
-```./main```
+```
+./main
+```
