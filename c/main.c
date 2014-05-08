@@ -17,6 +17,7 @@ struct CurrencyStruct {
   char symbol[SYMBOL_LEN]; // Er.. Maybe this should be a pointer.. but then freeing memory and stuff.. hmm!
 };
 
+
 struct MemoryStruct {
   char *memory;
   size_t size; // Or length
@@ -47,6 +48,8 @@ int main(int argc, char *argv[]){
 
   struct MemoryStruct chunk;
   struct CurrencyStruct cs;
+  struct CurrencyStruct *csarray;
+  size_t cssize = 0;
   
   chunk.memory = malloc(1);
   chunk.size = 0;
@@ -84,11 +87,19 @@ int main(int argc, char *argv[]){
 	cs._15m = json_object_get_double(tmp);
 	json_object_object_get_ex(info, "symbol", &tmp);
 	strncpy(cs.symbol, json_object_get_string(tmp), SYMBOL_LEN);
+	csarray = realloc(csarray, sizeof(struct CurrencyStruct) * ++cssize);
+	csarray[cssize-1] = cs;
       }
     }
   }
 
-  printf("%s: %s%f\n", cs.currency_code, cs.symbol, cs.last);
+  int cnt;
+  for (cnt = 0; cnt < cssize; cnt++){
+    printf("%s: %s%f\n", csarray[cnt].currency_code, csarray[cnt].symbol, csarray[cnt].last);
+  }
+
+  // Cleanup Parsing related stuff
+  free(csarray);
 
   // Cleanup Curl
   curl_easy_cleanup(curl_handle);
