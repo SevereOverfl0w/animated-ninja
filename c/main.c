@@ -5,6 +5,18 @@
 #include <curl/curl.h>
 #include <json/json.h>
 
+#define CURRENCY_LEN 4
+#define SYMBOL_LEN 10
+
+struct CurrencyStruct {
+  char currency_code[CURRENCY_LEN]; // TODO: Experiment with using malloc here, in case of > 3 long currency code.
+  double last;
+  double buy;
+  double sell;
+  double twentyfourhour;
+  char symbol[SYMBOL_LEN]; // Er.. Maybe this should be a pointer.. but then freeing memory and stuff.. hmm!
+};
+
 struct MemoryStruct {
   char *memory;
   size_t size; // Or length
@@ -31,8 +43,10 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, voi
 int main(int argc, char *argv[]){
   CURL *curl_handle;
   CURLcode res;
+  json_object *response;
 
   struct MemoryStruct chunk;
+  struct CurrencyStruct cs;
   
   chunk.memory = malloc(1);
   chunk.size = 0;
@@ -51,7 +65,30 @@ int main(int argc, char *argv[]){
   } else {
     printf("%lu bytes munched\n", (long)chunk.size);
     printf("Received:\n%s\n", chunk.memory);
+    response = json_tokener_parse(chunk.memory);
+    if (is_error(response)){
+      puts("Failed to parse JSON!");
+    } else {
+      json_object_object_foreach(response, currency, info) {
+	// TODO: Tidy this up... somehow
+	// TODO: malloc the final struct, add to array of some kind...
+	strncpy(cs.currency_code, currency, CURRENCY_LEN);
+	json_object *tmp;
+	json_object_object_get_ex(info, "last", &tmp);
+	cs.last = json_object_get_double(tmp);
+	json_object_object_get_ex(info, "buy", &tmp);
+	cs.buy = json_object_get_double(tmp);
+	json_object_object_get_ex(info, "sell", &tmp);
+	cs.sell = json_object_get_double(tmp);
+	json_object_object_get_ex(info, "24h", &tmp);
+	cs.twentyfourhour = json_object_get_double(tmp);
+	json_object_object_get_ex(info, "symbol", &tmp);
+	strncpy(cs.symbol, json_object_get_string(tmp), SYMBOL_LEN);
+      }
+    }
   }
+
+  printf("%s: %s%f\n", cs.currency_code, cs.symbol, cs.last);
 
   // Cleanup Curl
   curl_easy_cleanup(curl_handle);
