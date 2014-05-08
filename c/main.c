@@ -13,7 +13,7 @@ struct CurrencyStruct {
   double last;
   double buy;
   double sell;
-  double twentyfourhour;
+  double _15m;
   char symbol[SYMBOL_LEN]; // Er.. Maybe this should be a pointer.. but then freeing memory and stuff.. hmm!
 };
 
@@ -80,8 +80,8 @@ int main(int argc, char *argv[]){
 	cs.buy = json_object_get_double(tmp);
 	json_object_object_get_ex(info, "sell", &tmp);
 	cs.sell = json_object_get_double(tmp);
-	json_object_object_get_ex(info, "24h", &tmp);
-	cs.twentyfourhour = json_object_get_double(tmp);
+	json_object_object_get_ex(info, "15m", &tmp);
+	cs._15m = json_object_get_double(tmp);
 	json_object_object_get_ex(info, "symbol", &tmp);
 	strncpy(cs.symbol, json_object_get_string(tmp), SYMBOL_LEN);
       }
