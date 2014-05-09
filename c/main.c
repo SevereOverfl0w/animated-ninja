@@ -9,12 +9,12 @@
 #define SYMBOL_LEN 10
 
 struct CurrencyStruct {
-    char currency_code[CURRENCY_LEN]; // TODO: Experiment with using malloc here, in case of > 3 long currency code.
+    char *currency_code;
     double last;
     double buy;
     double sell;
     double _15m;
-    char symbol[SYMBOL_LEN]; // Er.. Maybe this should be a pointer.. but then freeing memory and stuff.. hmm!
+    char *symbol;
 };
 
 
@@ -75,6 +75,7 @@ int main(int argc, char *argv[]){
             json_object_object_foreach(response, currency, info) {
                 // TODO: Tidy this up... somehow
                 // TODO: malloc the final struct, add to array of some kind...
+                cs.currency_code = malloc(CURRENCY_LEN);
                 strncpy(cs.currency_code, currency, CURRENCY_LEN);
                 json_object *tmp;
                 json_object_object_get_ex(info, "last", &tmp);
@@ -86,6 +87,7 @@ int main(int argc, char *argv[]){
                 json_object_object_get_ex(info, "15m", &tmp);
                 cs._15m = json_object_get_double(tmp);
                 json_object_object_get_ex(info, "symbol", &tmp);
+                cs.symbol = malloc(SYMBOL_LEN);
                 strncpy(cs.symbol, json_object_get_string(tmp), SYMBOL_LEN);
                 csarray = realloc(csarray, sizeof(struct CurrencyStruct) * ++cssize);
                 csarray[cssize-1] = cs;
@@ -99,6 +101,11 @@ int main(int argc, char *argv[]){
     }
 
     // Cleanup Parsing related stuff
+    for (cnt = 0; cnt < cssize; cnt++){
+        free(cs.currency_code);
+        free(cs.symbol);
+    }
+
     free(csarray);
 
     // Cleanup Curl
